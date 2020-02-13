@@ -2,9 +2,9 @@ import json
 import os
 import random
 import bottle
+import operator
 
 from api import ping_response, start_response, move_response, end_response
-
 
 @bottle.route('/')
 def index():
@@ -33,7 +33,6 @@ def ping():
     """
     return ping_response()
 
-
 @bottle.post('/start')
 def start():
     data = bottle.request.json
@@ -45,24 +44,31 @@ def start():
     """
     print(json.dumps(data))
 
-    color = "#00FF00"
+    from Snake import Snake
+    
+    s = Snake(data)
+    color = s.COLOUR
 
     return start_response(color)
 
 
 @bottle.post('/move')
 def move():
+    from Direction import Direction
+    
     data = bottle.request.json
-
-    """
-    TODO: Using the data from the endpoint request object, your
-            snake AI must choose a direction to move in.
-    """
     print(json.dumps(data))
 
-    directions = ['up', 'down', 'left', 'right']
-    direction = random.choice(directions)
-
+    up = Direction(0,-1,data)
+    down = Direction(0,1,data)
+    left = Direction(-1,0,data)
+    right = Direction(1,0,data)
+    
+    rewards = {"up":up.getReward(),"down":down.getReward(),"left":left.getReward(),"right":right.getReward()}
+    
+    print('REWARDS: ',rewards)
+    direction = max(rewards.items(), key=operator.itemgetter(1))[0]
+    print('Chose to go {} on turn {}'.format(direction, data['turn']))
     return move_response(direction)
 
 
